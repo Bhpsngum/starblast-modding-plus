@@ -20,7 +20,7 @@ Same thing but it kills the target player, letting them still respawn.
 
 ### game.instructorBroadcast(message, _instructor, _delay)
 
-Broadcasts a message to all players in the game using the instructor dialog. `_instructor` is optional, must be a string of either: `Lucina`, `Klaus`, `Maria`, `Kan`, `Zoltar`. Defaults to `Lucina`. Delay is an optional number that specifies after how many ticks the instructor dialog will close. Defaults to `120` (2 seconds). 
+Broadcasts a message to all players in the game using the instructor dialog. `_instructor` is optional, must be a string of either: `Lucina`, `Klaus`, `Maria`, `Kan`, `Zoltar`. Defaults to `Lucina`. Delay is an optional number that specifies after how many ticks the instructor dialog will close. Defaults to `120` (2 seconds).
 
 ### game.emptyWeapons()
 
@@ -98,12 +98,33 @@ Same thing as `game.print` except it's colored differently.
 
 `function` is the function you wish the execute every `delay` ticks in the game. Remember that normally there are 60 in-game ticks per-second. Returns the interval index.
 
-### game.clearInterval(index)
+### game.clearTimer(index)
 
-Clears the selected interval.
+Clears the selected timer (can be an interval or a timeout).
+
+### game.viewTimer(index)
+
+Returns an object representing the seleceted timer's stats.
+
+Values:
+
+|Property|Type|Description|
+|-|-|-|
+|type|String|Type of the timer (`Interval` or `Timeout`)|
+|param*|Any|The param passed for executing in the timer|
+|time_expired (`Timeout` only)|Number|Duration of the timeout (in ticks)|
+|interval (`Interval` only)|Number|Duration of each interval (in ticks)|
+|expired|Boolean|The selected timer is stopped or not|
+
+<sub><sup>* this property cannot be viewed through the modding console, however, this value still accessible by the codes like `echo(game.viewTimer(1).param)`</sup></sub>
+### game.reuseTimer(index)
+
+Re-uses the selected timer.
+
+### game.resetTimers()
+
+Clear all active timers
 
 ### game.setTimeout(function, delay)
 
 Executes function `function` after `delay` ticks.
-
-

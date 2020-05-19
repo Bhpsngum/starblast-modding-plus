@@ -1,8 +1,7 @@
 /*Initial setup. Do not modify codes between the comments blocks! */
 const GameExtender = {
     broadcastInterval:0,
-    timers: new Set(),
-    intervals: [],
+    timers: [],
     print: function (item) {
         this.modding.terminal.echo(item);
     },
@@ -16,7 +15,7 @@ const GameExtender = {
         this.modding.terminal.error(item);
     },
     kick: function (identifier) {
-        let ship = this.ships[identifier];
+        let ship = this.locateShip(identifier);
         return ship && ship.gameover({
             "Status": "Kicked by operator",
             "Score": ship.score,
@@ -26,14 +25,14 @@ const GameExtender = {
         });
     },
     kill: function (identifier) {
-        let ship = this.ships[identifier];
+        let ship = this.locateShip(identifier);
         return ship && ship.set({
             kill: true
         });
     },
     locateShip: function (identifier) {
         if (typeof identifier == "number") {
-            return this.ships[identifier];
+            return this.ships[Math.trunc(identifier)];
         }
         let searchQuery = identifier.toLowerCase();
         for (let shipIndex in this.ships) {
@@ -46,15 +45,48 @@ const GameExtender = {
         return null;
     },
     setTimeout: function (func, ticks) {
-        let currentTick = this.step;
-        this.timers.add([func, currentTick + ticks, this]);
+        return this.timers.push(["Timeout",func, ticks, true, game.step]);
     },
     setInterval: function (func, ticks) {
         let currentTick = this.step;
-        return this.intervals.push([func, ticks]) - 1;
+        return this.timers.push(["Interval",func, ticks, true]);
     },
-    clearInterval: function (index) {
-        this.intervals.splice(index, 1);
+    clearTimer: function (index) {
+        let i = Math.trunc(Number(index)||0)-1;
+        if (i>-1 && i<this.timers.length) this.timers[i][3]=false;
+    },
+    viewTimer: function (index) {
+        let i = Math.trunc(Number(index)||0)-1,a;
+        if (!(i>-1 && i<this.timers.length)) return;
+        a = {
+          type: this.timers[i][0],
+          param: this.timers[i][1]
+        };
+        switch (this.timers[i][0])
+        {
+          case "Timeout":
+            a.time_expired = this.timers[i][2];
+            break;
+          case "Interval":
+            a.interval = this.timers[i][2];
+            break;
+        }
+        a.expired = !this.timers[i][3];
+        a.toString = function(){
+          return JSON.stringify(this);
+        };
+        return a;
+    },
+    reuseTimer: function (index) {
+        let i = Math.trunc(Number(index)||0)-1,a;
+        if (i>-1 && i<this.timers.length) this.timers[i][3] = true;
+        if (this.timers[i][4]) this.timers[i][4]=game.step;
+    },
+    resetTimers: function ()
+    {
+        this.timers.forEach(function (timer) {
+          timer[3]=false;
+        });
     },
     instructorBroadcast: function(message, _instructor, _delay) {
         _instructor = _instructor || "Lucina";
@@ -97,7 +129,7 @@ for (let prop of ["invulnerable","angle"])
     });
     return this;
   }`);
-  
+
 const AlienExtender = {
   kill: function () {
     return this.set({
@@ -119,7 +151,7 @@ for (let prop of ["shield","regen","damage","laser_speed","rate"])
 AlienExtender.laserSpeed = function (data) {
     return this.laser_speed(data);
 }
-  
+
 Object.assign(game, GameExtender);
 Object.assign(I1l00.prototype, ShipExtender);
 Object.assign(Alien.prototype, AlienExtender);
@@ -127,15 +159,22 @@ Object.assign(Alien.prototype, AlienExtender);
 this.extendedTick = function (game)
 {
   game.timers.forEach(function (timer) {
-    let game = timer[2];
-    if (game.step >= timer[1]) {
-      (typeof timer[0] == "function") && timer[0]();
-      game.timers.delete(timer);
+    if (typeof timer[1] != "function" || !timer[3])
+    {
+      timer[3]=false;
+      return;
     }
-  });
-  game.intervals.forEach(function (interval) {
-    if (game.step % interval[1] === 0) {
-      (typeof interval[0] == "function") && interval[0]();
+    switch (timer[0] || "")
+    {
+      case "Timeout":
+        if (game.step >= (Number(timer[2])||0) + timer[4]) {
+          timer[1]();
+          timer[3] = false;
+        }
+        break;
+      case "Interval":
+        if (game.step % timer[2] === 0) timer[1]();
+        break;
     }
   });
   game.ships.forEach(function (ship) {
