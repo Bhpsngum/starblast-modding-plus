@@ -98,6 +98,10 @@ Same thing as `game.print` except it's colored differently.
 
 `function` is the function you wish the execute every `delay` ticks in the game. Remember that normally there are 60 in-game ticks per-second. Returns the interval index.
 
+### game.setTimeout(function,time_expired)
+
+Executes the `function` after `time_expired` ticks.
+
 ### game.clearTimer(index)
 
 Clears the selected timer (can be an interval or a timeout).
