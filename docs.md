@@ -120,14 +120,14 @@ Values:
 |interval (`Interval` only)|Number|Duration of each interval (in ticks)|
 |expired|Boolean|The selected timer is stopped or not|
 
-<sub><sup>* this property cannot be viewed through the modding console, however, this value still accessible by the codes like `echo(game.viewTimer(1).param)`</sup></sub>
+<sup>* this property is not always viewable through the modding console, however, this value is still accessible by the codes like `echo(game.viewTimer(1).param)`</sup>
 ### game.reuseTimer(index)
 
 Re-uses the selected timer.
 
 ### game.resetTimers()
 
-Clear all active timers
+Clear all current active timers
 
 ### game.setTimeout(function, delay)
 
